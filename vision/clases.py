@@ -198,6 +198,10 @@ class CountTracking:
             self._area_4_c_id.add(self._id)
             self._count_a4 = len(self._area_4_c_id)
 
+    def counter_vehicles(self):
+        self._carril_izq = self._count_a1 + self._count_a2
+        self._carril_der = self._count_a3 + self._count_a4
+
     def save_file(self):
         self._diferencia_carriles = (self._count_a1 + self._count_a2) - (
             self._count_a3 + self._count_a4
@@ -249,5 +253,6 @@ class CountTracking:
             self.counter_vehicles_area2()
             self.counter_vehicles_area3()
             self.counter_vehicles_area4()
-            self.save_file()
+            self.counter_vehicles()
+            # self.save_file()
             self.paint_polylines()
