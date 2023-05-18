@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container" style="margin-top: 3rem;">
+    <div class="container mt-5">
+		<div class="row justify-content-center">
+			<div class="col-md-6">
+
+				<form id="login-form">
+          <div class="row justify-content-center">
+
+            <img src="{{ logo }}" width="45" height="45">
+            <h2 class="mb-3"> Login</h2>
+          </div>
+					<div class="mb-3">
+						<label for="username" class="form-label">Nombre de usuario:</label>
+						<input type="text" class="form-control" id="username" name="username" placeholder="Enter your username" required>
+					</div>
+					<div class="mb-3">
+						<label for="password" class="form-label">Contraseña:</label>
+						<input type="password" class="form-control" id="password" name="password" placeholder="Enter your password" required>
+					</div>
+					<button type="submit" class="btn btn-primary">Autenticarse</button>
+				</form>
+
+			</div>
+		</div>
+	</div>
+
+</div>
+
+<script>
+const loginForm = document.getElementById('login-form');
+const submitButton = document.querySelector('button[type="submit"]');
+
+submitButton.addEventListener('click', (event) => {
+	event.preventDefault();
+  
+  const username = document.getElementById('username').value;
+  const password = document.getElementById('password').value;
+  
+  const formData = new FormData();
+  formData.append('grant_type', 'password');
+  formData.append('username', username);
+  formData.append('password', password);
+
+  fetch('/token', {
+    method: 'POST',
+    body: formData
+  })
+  .then(response => response.json())
+  .then(data => {
+    console.log(data);
+    
+    if (data.access_token) {
+      localStorage.setItem('token', data.access_token);
+      
+      const previousPage = document.referrer;
+      window.location.href = '/';
+    } else {
+      console.error('Login failed:', data);
+      alert(data.detail)
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+  });
+});
+</script>
+{% endblock content %}

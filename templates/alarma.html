@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container" style="margin-top: 3rem;">
+  <h2>Alarmas</h2>
+  <div id="alarm-container" class="container" ></div>
+</div>
+
+
+<script>
+  const socket = new WebSocket('ws://127.0.0.1:8000/websocket');
+
+socket.addEventListener('open', event => {
+  console.log('WebSocket connection opened!');
+});
+
+
+function getLevelClass(level) {
+  switch(level) {
+    case 2:
+      return 'danger';
+    case 1:
+      return 'warning';
+  }
+}
+
+function getLevel(level) {
+  switch(level) {
+    case 2:
+      return 'peligro';
+    case 1:
+      return 'advertencia';
+  }
+}
+
+socket.addEventListener('message', event => {
+  event.preventDefault()
+  let data = JSON.parse(event.data);
+  let alarms = data.alarms.map(alarm => ({ level: alarm.level + 1, name: alarm.name, identifier: alarm.identifier}));
+  console.log('Received alarms:', alarms.length);
+
+
+  let container = document.querySelector('#alarm-container');
+  container.childNodes.forEach(child => child.remove())
+  alarms.forEach(alarm => {
+    let row = document.createElement('div');
+    row.classList.add('row', 'gx-5', 'justify-content-between', 'align-items-center');
+    let col1 = document.createElement('div');
+    col1.classList.add('col');
+    let col2 = document.createElement('div');
+    col2.classList.add('col');
+    let badge = document.createElement('span');
+    badge.classList.add('badge', `bg-${getLevelClass(alarm.level)}`);
+    badge.textContent = getLevel(alarm.level).charAt(0).toUpperCase() + getLevel(alarm.level).slice(1);
+    let name = document.createElement('p');
+    name.classList.add('p-3');
+    name.textContent = alarm.name;
+    let checkedButton = document.createElement('button');
+    checkedButton.classList.add('btn', 'btn-primary', 'p-2');
+    checkedButton.textContent = 'Marcar como atendida';
+    
+    checkedButton.addEventListener('click', () => {
+      row.style.display = 'none';
+
+      fetch('/alarm-action', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          identifier: alarm.identifier,
+          action: 'Alarma notificada a operario'
+        })
+      })
+      .then(response => console.log(response.json()))
+    });
+
+    let ignoreButton = document.createElement('button');
+    ignoreButton.classList.add('btn', 'btn-secondary', 'p-2');
+    ignoreButton.textContent = 'Ignorar';
+
+    ignoreButton.addEventListener('click', () => {
+      row.style.display = 'none';
+
+      fetch('/alarm-action', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          identifier: alarm.identifier,
+          action: 'Alarma ignorada por supervisor'
+        })
+      })
+      .then(response => console.log(response.json()))
+    });
+
+    container.appendChild(row);
+    row.appendChild(col1);
+    row.appendChild(col2);
+    col1.appendChild(name);
+    name.insertBefore(badge, name.firstChild);
+    col2.appendChild(checkedButton);
+    col2.appendChild(ignoreButton);
+  });
+});
+
+
+</script>
+
+{% endblock content %}

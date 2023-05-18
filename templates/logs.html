@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container" style="margin-top: 3rem;">
+    <div class="row">
+        <h1>Registro de acciones</h1>
+        <div class="col-12">
+          <p id="log" class="bg-dark text-light" style="padding: 2rem;"></p>
+        </div>
+    </div>
+</div>
+  
+
+<script>
+const socket = new WebSocket("ws://localhost:8000/websocket");
+
+socket.addEventListener('open', event => {
+  console.log('Websocket connection opened')
+});
+
+function writeLog(message, logParagraph) {
+    const timestamp = new Date().toLocaleString();
+    const logMessage = `<span style="color: cyan;">${message.ts}</span>: ${message.msg}<br>`;
+    logParagraph.innerHTML += logMessage;
+}
+
+socket.addEventListener('message', event => {
+  event.preventDefault();
+  let data = JSON.parse(event.data);
+  let logs = data.logs.map(log => ({ts: log.ts, msg: log.description}));
+  console.log(logs);
+  
+  const logParagraph = document.getElementById("log");
+  logParagraph.innerHTML = ``
+
+  logs.forEach(message => {
+    writeLog(message, logParagraph);
+  });
+});
+</script>
+
+
+
+{% endblock content %}

@@ -1,0 +1,8 @@
+*.pyc
+*.db
+*.pt
+testing.py
+
+.idea
+*.mp4
+venv/*
